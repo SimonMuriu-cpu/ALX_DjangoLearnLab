@@ -7,7 +7,7 @@ from relationship_app.models import Book, Library
 # Create your views here.
 def list_books(request):
   books = Book.objects.all()
-  return render(request, 'relationship_app/book_list.html', {'books': books})
+  return render(request, 'relationship_app/book_list_books.html', {'books': books})
 
 class LibraryDetailView(DetailView):
   mode =Library
