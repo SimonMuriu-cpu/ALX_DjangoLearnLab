@@ -2,7 +2,7 @@ from django.shortcuts import render, get_object_or_404
 
 from django.views.generic import DetailView
 
-from relationship_app.models import Book, Library
+from .models import Book, Library
 
 # Create your views here.
 def list_books(request):
