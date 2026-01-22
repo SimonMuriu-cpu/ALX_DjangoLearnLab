@@ -1,7 +1,8 @@
 from django import forms
-from .models import Book
+from bookshelf.models import Book
 
 
+Book = None
 class BookForm(forms.ModelForm):
     class Meta:
         model = Book

@@ -2,8 +2,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 
 from django.views.generic.detail import DetailView
 
-from .models import Book, Library
-
+from bookshelf.models import Book, Library
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from django.contrib.auth.views import LoginView, LogoutView
@@ -11,8 +10,12 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import user_passes_test
 from django.contrib.auth.decorators import permission_required
 
-from .forms import BookForm
+# from .forms import BookForm
 
+
+Book = None
+Library = None
+BookForm = None
 # Create your views here.
 def list_books(request):
   books = Book.objects.all()
