@@ -26,5 +26,11 @@ urlpatterns = [
     path('add_book/', add_book, name='add_book'),
     path('edit_book/<int:book_id>/', edit_book, name='edit_book'),
     path('delete_book/<int:book_id>/', delete_book, name='delete_book'),
+    path('books/', views.list_books, name='list_books'),
+    path('books/create/', views.BookCreateView.as_view(), name='book_create'),
+    path('books/<int:pk>/edit/', views.BookUpdateView.as_view(), name='book_edit'),
+    path('books/<int:pk>/delete/', views.BookDeleteView.as_view(), name='book_delete'),
+    path('libraries/', views.LibraryListView.as_view(), name='library_list'),
+    path('libraries/<int:pk>/', views.LibraryDetailView.as_view(), name='library_detail'),
 ]
 

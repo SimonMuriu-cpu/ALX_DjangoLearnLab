@@ -64,6 +64,9 @@ class CustomUser(AbstractUser):
         return self.email
 
 # Library and Book models
+
+# Updating the Library model to include permissions:
+
 class Library(models.Model):
     name = models.CharField(max_length=100)
     location = models.CharField(max_length=200)
@@ -75,8 +78,18 @@ class Library(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        permissions = [
+            ("can_view", "Can view library"),
+            ("can_create", "Can create library"),
+            ("can_edit", "Can edit library"),
+            ("can_delete", "Can delete library"),
+        ]
+    
     def __str__(self):
         return self.name
+
+# Updating the Book model to include permissions:
 
 class Book(models.Model):
     title = models.CharField(max_length=200)
@@ -89,6 +102,14 @@ class Book(models.Model):
     )
     published_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        permissions = [
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
+        ]
     
     def __str__(self):
         return self.title
