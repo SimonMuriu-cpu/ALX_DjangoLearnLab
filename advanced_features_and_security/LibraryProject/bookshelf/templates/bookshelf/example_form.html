@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Form - Security Demonstration</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .form-container { max-width: 600px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-control { 
+            width: 100%; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+        }
+        .form-check { margin-bottom: 10px; }
+        .error { color: #dc3545; font-size: 0.9em; margin-top: 5px; }
+        .help-text { color: #6c757d; font-size: 0.9em; margin-top: 5px; }
+        .btn { 
+            padding: 10px 20px; 
+            background-color: #007bff; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        .btn:hover { background-color: #0056b3; }
+        .security-features { 
+            margin-top: 30px; 
+            padding: 15px; 
+            background-color: #f8f9fa; 
+            border-left: 4px solid #007bff; 
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>ExampleForm Security Demonstration</h1>
+        <p>This form demonstrates security best practices including input validation, sanitization, and CSRF protection.</p>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="error">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label for="{{ form.user_input.id_for_label }}">{{ form.user_input.label }}</label>
+                {{ form.user_input }}
+                {% if form.user_input.errors %}
+                    <div class="error">{{ form.user_input.errors }}</div>
+                {% endif %}
+                <div class="help-text">{{ form.user_input.help_text }}</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                    <div class="error">{{ form.email.errors }}</div>
+                {% endif %}
+                <div class="help-text">{{ form.email.help_text }}</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.rating.id_for_label }}">{{ form.rating.label }}</label>
+                {{ form.rating }}
+                {% if form.rating.errors %}
+                    <div class="error">{{ form.rating.errors }}</div>
+                {% endif %}
+                <div class="help-text">{{ form.rating.help_text }}</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.category.id_for_label }}">{{ form.category.label }}</label>
+                {{ form.category }}
+                {% if form.category.errors %}
+                    <div class="error">{{ form.category.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <div class="form-check">
+                {{ form.agree_terms }}
+                <label for="{{ form.agree_terms.id_for_label }}">{{ form.agree_terms.label }}</label>
+                {% if form.agree_terms.errors %}
+                    <div class="error">{{ form.agree_terms.errors }}</div>
+                {% endif %}
+            </div>
+            
+            <button type="submit" class="btn">Submit Securely</button>
+        </form>
+        
+        <div class="security-features">
+            <h3>Security Features Demonstrated:</h3>
+            <ul>
+                <li><strong>CSRF Protection:</strong> {% csrf_token %} included</li>
+                <li><strong>Input Sanitization:</strong> HTML tags stripped from user_input</li>
+                <li><strong>Validation:</strong> Email format, rating range, required fields</li>
+                <li><strong>Attack Pattern Detection:</strong> Checks for SQL injection and XSS patterns</li>
+                <li><strong>Length Limits:</strong> Maximum character limits enforced</li>
+                <li><strong>Cross-field Validation:</strong> Custom clean() method</li>
+            </ul>
+            
+            <h3>Security Headers (Check in browser dev tools):</h3>
+            <ul>
+                <li>Content-Security-Policy</li>
+                <li>X-Frame-Options: DENY</li>
+                <li>X-Content-Type-Options: nosniff</li>
+            </ul>
+        </div>
+        
+        <p><a href="{% url 'book_list' %}">Back to Book List</a></p>
+    </div>
+</body>
+</html>
