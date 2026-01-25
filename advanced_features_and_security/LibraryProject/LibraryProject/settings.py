@@ -263,3 +263,62 @@ HTTPS_ENFORCED = SECURE_SSL_REDIRECT
 
 # Custom setting for security mode
 SECURITY_MODE = 'production' if not DEBUG else 'development'
+
+
+# ============ HTTPS & SECURITY SETTINGS ============
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'your-secure-secret-key-change-this-in-production'
+
+# SECURITY WARNING: don't run with debug turned on in production!
+DEBUG = False  # Always False in production
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'yourdomain.com', 'www.yourdomain.com']
+
+# ============ PROXY & SSL HEADER CONFIGURATION ============
+
+# This is required when running behind a proxy/load balancer
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+# ============ HTTPS ENFORCEMENT ============
+
+# Redirect all HTTP requests to HTTPS
+SECURE_SSL_REDIRECT = True
+
+# HTTP Strict Transport Security (HSTS)
+SECURE_HSTS_SECONDS = 31536000  # 1 year
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# ============ SECURE COOKIES ============
+
+# Ensure cookies are only sent over HTTPS
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
+# Additional cookie security
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False  # Allow JS to read CSRF token
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# ============ SECURITY HEADERS ============
+
+# Prevent clickjacking
+X_FRAME_OPTIONS = 'DENY'
+
+# Prevent MIME type sniffing
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# Enable browser XSS filter
+SECURE_BROWSER_XSS_FILTER = True
+
+# Referrer policy
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
+
+# Additional Django 4.0+ security settings
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+
+# Content Security Policy (basic implementation)
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin'
