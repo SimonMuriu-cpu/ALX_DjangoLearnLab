@@ -1,47 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Book List</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List - Secure Library</title>
+    <style>
+        /* Inline styles are allowed in CSP with 'unsafe-inline' */
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .alert { padding: 10px; margin: 10px 0; border-radius: 4px; }
+        .alert-success { background-color: #d4edda; color: #155724; }
+        .alert-error { background-color: #f8d7da; color: #721c24; }
+        form { margin: 20px 0; }
+        input, select, textarea { 
+            display: block; 
+            margin: 10px 0; 
+            padding: 8px; 
+            width: 300px; 
+        }
+        .csrf-token { display: none; }
+    </style>
 </head>
 <body>
-    <h1>Book List</h1>
+    <h1>Secure Book Management</h1>
     
+    <!-- Display messages -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- CSRF protected search form -->
+    <h2>Search Books</h2>
+    <form method="get" action="{% url 'book_search' %}">
+        {% csrf_token %}  <!-- CSRF token for all forms -->
+        <label for="search">Search:</label>
+        <input type="text" id="search" name="q" placeholder="Search by title or author">
+        <button type="submit">Search</button>
+    </form>
+    
+    <!-- CSRF protected filter form -->
+    <h2>Filter Books</h2>
+    <form method="get" action="{% url 'book_list' %}">
+        {% csrf_token %}
+        <label for="author">Author:</label>
+        <input type="text" id="author" name="author">
+        
+        <label for="library">Library:</label>
+        <select id="library" name="library">
+            <option value="">All Libraries</option>
+            {% for library in libraries %}
+                <option value="{{ library.id }}">{{ library.name }}</option>
+            {% endfor %}
+        </select>
+        
+        <button type="submit">Filter</button>
+    </form>
+    
+    <!-- Book list with secure links -->
+    <h2>Book List</h2>
     {% if perms.bookshelf.can_create %}
-    <a href="{% url 'book_create' %}">Create New Book</a>
+    <a href="{% url 'book_create' %}">Create New Book (CSRF Protected)</a>
     {% endif %}
     
     <ul>
     {% for book in books %}
         <li>
-            <strong>{{ book.title }}</strong> by {{ book.author }}
-            (ISBN: {{ book.isbn }})
+            <strong>{{ book.title|escape }}</strong> by <em>{{ book.author|escape }}</em>
+            <!-- Using |escape filter to prevent XSS -->
             <br>
-            Library: {{ book.library.name }}
+            Library: {{ book.library.name|escape }}
+            <br>
+            ISBN: {{ book.isbn|escape }}
             <br>
             Published: {{ book.published_date }}
             
-            {% if perms.bookshelf.can_view %}
-            <a href="{% url 'library_detail' book.library.id %}">View Library</a>
-            {% endif %}
-            
-            {% if perms.bookshelf.can_edit %}
-            <a href="{% url 'book_edit' book.id %}">Edit</a>
-            {% endif %}
-            
-            {% if perms.bookshelf.can_delete %}
-            <a href="{% url 'book_delete' book.id %}">Delete</a>
-            {% endif %}
+            <!-- CSRF protected action links -->
+            <div class="actions">
+                {% if perms.bookshelf.can_view %}
+                <a href="{% url 'library_detail' book.library.id %}">View Library</a>
+                {% endif %}
+                
+                {% if perms.bookshelf.can_edit %}
+                <a href="{% url 'book_edit' book.id %}">Edit</a>
+                {% endif %}
+                
+                {% if perms.bookshelf.can_delete %}
+                <!-- Delete form with CSRF token -->
+                <form method="post" action="{% url 'book_delete' book.id %}" 
+                      style="display: inline;" 
+                      onsubmit="return confirm('Are you sure you want to delete {{ book.title|escapejs }}?');">
+                    {% csrf_token %}
+                    <button type="submit" style="color: red; border: none; background: none; cursor: pointer;">
+                        Delete
+                    </button>
+                </form>
+                {% endif %}
+            </div>
         </li>
     {% empty %}
         <li>No books available.</li>
     {% endfor %}
     </ul>
     
-    <p>Current user: {{ user.username }}</p>
-    <p>User permissions: 
-        {% for perm in user.get_all_permissions %}
-            {{ perm }}{% if not forloop.last %}, {% endif %}
-        {% endfor %}
-    </p>
+    <!-- Security information display -->
+    <div class="security-info">
+        <h3>Security Features Enabled:</h3>
+        <ul>
+            <li>CSRF Protection: <strong>✓</strong></li>
+            <li>XSS Prevention: <strong>✓</strong> (Template auto-escaping)</li>
+            <li>Content Security Policy: <strong>✓</strong></li>
+            <li>Secure Cookies: <strong>{{ request.is_secure|yesno:"✓,✗" }}</strong></li>
+        </ul>
+    </div>
+    
+    <!-- Hidden CSRF token for AJAX requests -->
+    <div class="csrf-token" id="csrf-token" data-csrf="{{ csrf_token }}"></div>
+    
+    <!-- External script with CSP nonce -->
+    <script nonce="{{ request.csp_nonce }}">
+        // Safe JavaScript with CSP nonce
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Secure book management loaded');
+            
+            // Get CSRF token for AJAX
+            const csrfToken = document.getElementById('csrf-token').dataset.csrf;
+            
+            // Example of safe DOM manipulation
+            const forms = document.querySelectorAll('form');
+            forms.forEach(form => {
+                form.addEventListener('submit', function(e) {
+                    // Additional client-side validation
+                    const searchInput = this.querySelector('input[name="q"]');
+                    if (searchInput && searchInput.value.trim().length < 2) {
+                        alert('Please enter at least 2 characters for search');
+                        e.preventDefault();
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

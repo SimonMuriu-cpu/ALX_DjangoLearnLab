@@ -10,7 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
+import os
 from pathlib import Path
+
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-wwdp(=^*z8rfg@z8j#(l4w^(m#gd3=pq-avh)*b=s&uw9a&*k-'
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', 'bookshelf-app-development-security-key-to-be-changed-later')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set DEBUG based on environment variable
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
+
+ALLOWED_HOSTS = ['localhost', '127.0.0.1'] # To add production domain later
 
 
 # Application definition
@@ -37,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'csp' ,  # Content Security Policy app
     'relationship_app',
     'bookshelf',
     
@@ -44,12 +50,16 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'csp.middleware.CSPMiddleware',  # CSP middleware
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # CSRF protection
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',  # Clickjacking protection
+    'django.middleware.security.SecurityMiddleware',  # Security headers
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -92,6 +102,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
     {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'OPTIONS': {
+            'min_length': 8, # Increased minimum length for better security
+        }
     },
     {
         'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
@@ -118,6 +131,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 
 LOGIN_REDIRECT_URL = '/'
@@ -125,5 +139,106 @@ LOGOUT_REDIRECT_URL = 'login'
 
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
 
+# Media files
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Custom user model
+AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
+
+# ============ SECURITY SETTINGS ============
+
+# Force HTTPS in production
+SECURE_SSL_REDIRECT = not DEBUG  # Redirect all HTTP to HTTPS in production
+SESSION_COOKIE_SECURE = not DEBUG  # Send session cookie only over HTTPS
+CSRF_COOKIE_SECURE = not DEBUG  # Send CSRF cookie only over HTTPS
+SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0  # 1 year HSTS in production
+SECURE_HSTS_INCLUDE_SUBDOMAINS = not DEBUG
+SECURE_HSTS_PRELOAD = not DEBUG
+
+# Browser security headers
+SECURE_BROWSER_XSS_FILTER = True  # Enable XSS filter in browsers
+X_FRAME_OPTIONS = 'DENY'  # Prevent clickjacking by denying framing
+SECURE_CONTENT_TYPE_NOSNIFF = True  # Prevent MIME type sniffing
+
+# Additional security settings
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'  # Referrer policy
+
+# Content Security Policy (CSP) settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net")
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'", "https://cdn.jsdelivr.net")
+CSP_IMG_SRC = ("'self'", "data:", "https://*")
+CSP_FONT_SRC = ("'self'", "https://cdn.jsdelivr.net")
+CSP_CONNECT_SRC = ("'self'",)
+CSP_OBJECT_SRC = ("'none'",)
+CSP_BASE_URI = ("'self'",)
+CSP_FRAME_ANCESTORS = ("'none'",)  # Same as X_FRAME_OPTIONS: DENY
+CSP_FORM_ACTION = ("'self'",)
+CSP_INCLUDE_NONCE_IN = ['script-src']
+
+# Session security
+SESSION_COOKIE_HTTPONLY = True  # Prevent JavaScript access to session cookie
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to read CSRF token (needed for AJAX)
+SESSION_COOKIE_SAMESITE = 'Lax'  # CSRF protection for cross-site requests
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Password hashing (using strong algorithm)
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+]
+
+# Email backend for production
+if not DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    # Configure your email settings here
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+# Logging configuration for security monitoring
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': 'WARNING',
+            'class': 'logging.FileHandler',
+            'filename': BASE_DIR / 'security.log',
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'simple',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.security': {
+            'handlers': ['file'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
