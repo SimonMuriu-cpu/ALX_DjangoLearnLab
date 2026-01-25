@@ -1,0 +1,53 @@
+# deployment/docker-compose.prod.yml
+version: '3.8'
+
+services:
+  nginx:
+    image: nginx:alpine
+    container_name: library_nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx-https.conf:/etc/nginx/conf.d/default.conf
+      - ./ssl:/etc/ssl/certs
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+    depends_on:
+      - web
+    networks:
+      - library_network
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    container_name: library_web
+    expose:
+      - "8000"
+    volumes:
+      - static_volume:/app/staticfiles
+      - media_volume:/app/media
+      - ./logs:/app/logs
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DJANGO_DEBUG=False
+      - DJANGO_ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+      - DJANGO_SECURE_SSL_REDIRECT=True
+      - DJANGO_SESSION_COOKIE_SECURE=True
+      - DJANGO_CSRF_COOKIE_SECURE=True
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate &&
+             gunicorn LibraryProject.wsgi:application --bind 0.0.0.0:8000 --config /app/deployment/gunicorn-config.py"
+    networks:
+      - library_network
+    restart: unless-stopped
+
+volumes:
+  static_volume:
+  media_volume:
+
+networks:
+  library_network:
+    driver: bridge
