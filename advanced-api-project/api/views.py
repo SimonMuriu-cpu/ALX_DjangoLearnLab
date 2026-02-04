@@ -26,7 +26,7 @@ class BookListView(generics.ListAPIView):
   filterset_fields = ['publication_year', 'author']
   
   # Add search capabilities
-  search_fields = ['title', 'author_name']
+  search_fields = ['title', 'author__name']
 
     # Add search and ordering capabilities
 
@@ -60,7 +60,7 @@ class BookCreateView(generics.CreateAPIView):
 
 class BookUpdateView(generics.UpdateAPIView):
   """
-    UpdateView for modifying an existing bookD.
+    UpdateView for modifying an existing book.
     Provides an endpoint to update existing Book instance.
     """
   queryset = Book.objects.all()
