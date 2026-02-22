@@ -294,7 +294,68 @@ This project is developed for educational and professional practice purposes.
 
 ---
 
-If you would like, I can now:
 
-* Upgrade this README to production-deployment level (including environment variables and PostgreSQL setup), or
-* Prepare the README for GitHub best practices (badges, API documentation section, example curl requests).
+
+
+📌 Posts Endpoints
+🔹 List Posts
+GET /api/posts/
+
+Supports search:
+
+GET /api/posts/?search=django
+🔹 Create Post
+POST /api/posts/
+
+Body:
+
+{
+  "title": "My First Post",
+  "content": "This is the content."
+}
+🔹 Retrieve Post
+GET /api/posts/{id}/
+🔹 Update Post (Owner Only)
+PUT /api/posts/{id}/
+🔹 Delete Post (Owner Only)
+DELETE /api/posts/{id}/
+📌 Comments Endpoints
+🔹 List Comments
+GET /api/comments/
+🔹 Create Comment
+POST /api/comments/
+
+Body:
+
+{
+  "post": 1,
+  "content": "Great post!"
+}
+🔹 Update/Delete Comment
+
+Owner only.
+
+✅ Testing Checklist (For Submission)
+
+✔ Create post as authenticated user
+✔ Cannot edit another user’s post
+✔ Search works
+✔ Pagination works
+✔ Comments attach correctly
+✔ Tokens required for protected actions
+
+🎯 What You Now Have
+
+Full CRUD for posts
+
+Full CRUD for comments
+
+Search filtering
+
+Pagination
+
+Owner-only edit/delete
+
+Nested comments display
+
+Production-structured DRF API
